@@ -9,7 +9,9 @@ Before running any scripts, please download the necessary data from Zenodo. The 
   - mutsonc -  binary matrix of all oncogenic mutations
   - mutssilent - binary matrix of all silent mutations
   - bmi_dfci - raw counts of KRAS and EGFR mutations in validation cohort
+  - gaddy - BMI information to make supplemental figure 1
+  - wl_lung - cachexia labels
 
 
-In order to generate the main results reported in the paper, please run the script "BMI Analysis and Figures Script.R". This will run the logistic regression models and produce figure 1a-e, and supplemental figure 2.
+In order to generate the main results reported in the paper, please run the script "BMI Analysis and Figures Script.R". This will run the logistic regression models and produce figure 1, supplemental figure 1, and supplemental figure 2.
 
