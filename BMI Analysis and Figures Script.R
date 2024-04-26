@@ -5,6 +5,8 @@ library(patchwork)
 library(ggplot2)
 library(ggrepel)
 library(sjPlot)
+library(GGally)
+library(introdataviz)
 
 load("BMI Manuscript Data.RData") #load data downloaded from zenodo
 
@@ -289,6 +291,91 @@ ggplot(bmi_dfci) +
   xlab('') + ylab('Fraction Mutant Patients') + theme(legend.position = 'none', text=element_text(size=6.5))
 
 
+#main figure, panel f
+genes_of_interest <- c("KRAS","EGFR")
+results_list <- list()
+
+pdf("stacked_cc_manual.pdf", width = 6, height = 8) 
+
+par(mfrow=c(1, 2)) 
+
+for (gene in genes_of_interest) {
+  wl_lung[[gene]] <- ifelse(wl_lung[[gene]] > 0, 1, 0)
+  
+  contingency_table <- table(
+    Mutated = factor(ifelse(wl_lung[[gene]] > 0, "Mutated", "Not Mutated"), levels = c("Mutated", "Not Mutated")),
+    Cachexia = factor(ifelse(wl_lung$manual_label == 0, "NoCachexia", "Cachexia"), levels = c("NoCachexia", "Cachexia"))
+  )
+  
+  percentage_table <- prop.table(contingency_table, margin = 1)
+  odds_ratio <- (contingency_table[1,1] * contingency_table[2,2]) / (contingency_table[1,2] * contingency_table[2,1])
+  chi_squared_test <- chisq.test(contingency_table)
+  p_value <- chi_squared_test$p.value
+  
+  
+  results_list[[gene]] <- list(
+    gene = gene,
+    contingency_table = contingency_table,
+    percentage_table = percentage_table,
+    p_value = p_value,
+    odds_ratio=odds_ratio
+  )
+  
+  p <- ggplot(data = as.data.frame(percentage_table), aes(x = Mutated, y = Freq, fill = Cachexia)) +
+    geom_bar(stat = "identity") +
+    labs(x = "Mutation", y = "Proportion", fill = "Cachexia",
+         title = paste(gene, " (p =", round(p_value, 4), ", OR =", round(odds_ratio, 4), ")")) +
+    scale_fill_manual(values = c("Cachexia" = "red", "NoCachexia" = "grey")) +
+    theme_bw() +
+    theme(legend.title = element_blank(), axis.title.x = element_text(face = "bold", colour = "black", size = 12),
+          axis.title.y = element_text(face = "bold", colour = "black", size = 12),plot.title = element_text(hjust = 0.5)) +
+    ylim(0, 1)  
+  print(p)
+}
+
+dev.off()  
+
+
+
+#supplemental figure 1
+y_axis_limits <- c(0, 75)
+bmi_distribution <- function(data, title) {
+  ggplot(data = data,
+         mapping = aes(x = CANCER_TYPE_DETAILED, y = bmi)) +
+    geom_point(position = position_dodge2(.9), size = 1.5, color="black") +
+    scale_x_discrete(position = "top") +
+    scale_y_continuous(expand = c(0, 0), limits = y_axis_limits,
+                       breaks = seq(0, 80, by = 10),
+                       labels = seq(0, 80, by = 10)) +
+    geom_stripped_cols() +
+    theme_bw() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_text(size = 13, face = "bold"), 
+          axis.text.x = element_text(angle = 270, hjust = 1, size = 11),
+          panel.grid = element_blank(),
+          axis.text.y = element_text(size = 8),
+          axis.text.y.right = element_text(size = 10),
+          axis.text.y.left = element_text(size = 10),
+          plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
+    labs(y = "BMI", title = title) +
+    stat_summary(fun = mean,
+                 geom = "crossbar",
+                 size = 0.25,
+                 width = 0.9,
+                 group = 1,
+                 show.legend = FALSE,
+                 color = "#FF0000") +
+    geom_text(data = ct_bmi,
+              aes(x = CANCER_TYPE_DETAILED,
+                  y = -Inf,
+                  label = count),
+              hjust = 0.5,
+              vjust = -0.5,
+              size = 3.5,
+              color = "#000000")
+}
+
+bmi_distribution(gaddy, "BMI distribution across detailed cancer types")
 
 
 #supplemental figure 2
