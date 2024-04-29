@@ -2,7 +2,7 @@
 
 This repository contains the code to reproduce the findings and figures presented in [Tang, et al., Obesity shapes selection for driver mutations in cancer, medRxiv (2024).](https://www.medrxiv.org/content/10.1101/2024.01.10.24301114v2)
 
-Before running any scripts, please download the necessary data from Zenodo. The generated data structure is as follows:
+Before running any scripts, please download the necessary data from [Zenodo.](https://zenodo.org/records/11075026) The generated data structure is as follows:
   - g2use - list of genes tested
   - clin - clinical features of each patient
   - mutsns - binary matrix of all non-synonymous mutations
